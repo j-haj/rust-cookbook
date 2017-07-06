@@ -5,6 +5,7 @@
 | [Parse command line arguments][ex-clap-basic] | [![clap-badge]][clap] | [![cat-command-line-badge]][cat-command-line] |
 | [Decompress a tarball][ex-tar-decompress] | [![flate2-badge]][flate2] [![tar-badge]][tar] | [![cat-compression-badge]][cat-compression] |
 | [Compress a directory into a tarball][ex-tar-compress] | [![flate2-badge]][flate2] [![tar-badge]][tar] | [![cat-compression-badge]][cat-compression] |
+| [Decompress a tarball while removing a prefix from the paths][ex-tar-decompress-remove-path-prefix] | [![flate2-badge]][flate2] [![tar-badge]][tar] | [![cat-compression-badge]][cat-compression] |
 | [Recursively find duplicate file names][ex-dedup-filenames] | [![walkdir-badge]][walkdir] | [![cat-filesystem-badge]][cat-filesystem] |
 | [Recursively find all files with given predicate][ex-file-predicate] | [![walkdir-badge]][walkdir] | [![cat-filesystem-badge]][cat-filesystem] |
 | [Recursively calculate file sizes at given depth][ex-file-sizes] | [![walkdir-badge]][walkdir] | [![cat-filesystem-badge]][cat-filesystem] |
@@ -189,6 +190,80 @@ fn run() -> Result<()> {
 # quick_main!(run);
 ```
 
+[ex-tar-decompress-remove-path-prefix]: #ex-tar-decompress-remove-path-prefix
+<a name="ex-tar-decompress-remove-path-prefix"></a>
+## Decompress a tarball while removing a prefix from the paths
+
+[![flate2-badge]][flate2] [![tar-badge]][tar] [![cat-compression-badge]][cat-compression]
+
+Decompresses the tarball by iterating over the entries and unpacking them after
+removing a specified path prefix.
+
+Create a [`tar::Archive`] from a [`flate2::read::GzDecoder::new`], iterate over
+its [`tar::Entries`], and for each [`tar::Entry`] we [`tar::Entry::unpack`] it
+to a given path.  The paths are constructed by getting the [`tar::Entry::path`]
+for each entry and then calling the [`std::path::Path::strip_prefix`] method, to
+strip the specified prefix (`bundle/logs` in this case) from the path. Note that
+because maps are lazily evaluated we must iterate (or use some other method to
+exhaust the iterator) over the map to actually unpack the archive.
+
+```rust,no_run
+# #[macro_use]
+# extern crate error_chain;
+extern crate flate2;
+extern crate tar;
+#
+# error_chain! {
+#     foreign_links {
+#         Io(::std::io::Error);
+#         StripPrefixError(::std::path::StripPrefixError);
+#     }
+# }
+
+use std::fs::File;
+use std::path::PathBuf;
+use flate2::read::GzDecoder;
+use tar::Archive;
+
+fn run() -> Result<()> {
+    // Get a reference to archive.tar.gz, which is a sample tarball created for
+    // this example
+    let file = File::open("archive.tar.gz")?;
+
+    // First get a streaming decoder to handle the gzip decompression and pass
+    // that into a tar::Archive
+    let mut archive = Archive::new(GzDecoder::new(file)?);
+
+    let extracted_entries = archive
+        // Get the entries of the archive
+        .entries()?
+        // Entries is an iterator that yields `Result<Entry>`
+        // this `filter_map` allows us to get the `Entry` from the
+        // `Result<Entry>`
+        .filter_map(|e| e.ok())
+        // This is where we strip the path prefix and extract the file.
+        // The `-> Result<PathBuf>` is here to aid the type inference
+        .map(|mut entry| -> Result<PathBuf> {
+            // Note: `to_owned()` is a more generic version of `clone()`
+            let path = entry.path()?.strip_prefix(prefix)?.to_owned();
+            entry.unpack(&path)?;
+            Ok(path)
+        });
+
+    // Since maps are evaluated lazily, we haven't actually extracted anything
+    // from the tarball yet. As we iterate through the map, we unpack the
+    // entries individually.
+    println!("Extracted the following files:");
+    for path in extracted_entries {
+        println!("> {:?}", path);
+    }
+
+    Ok(())
+}
+#
+# quick_main!(run);
+```
+
 [ex-dedup-filenames]: #ex-dedup-filenames
 <a name="ex-dedup-filenames"></a>
 ## Recursively find duplicate file names
@@ -325,8 +400,15 @@ fn main() {
 [`File`]: https://doc.rust-lang.org/std/fs/struct.File.html
 [`flate2::read::GzDecoder::new`]: https://docs.rs/flate2/*/flate2/read/struct.GzDecoder.html#method.new
 [`flate2::write::GzEncoder`]: https://docs.rs/flate2/*/flate2/write/struct.GzEncoder.html
+[`std::path::Path::strip_prefix`]: https://doc.rust-lang.org/std/path/struct.Path.html#method.strip_prefix
+[`tar::Archive`]: https://docs.rs/tar/*/tar/struct.Archive.html
+[`tar::Archive::entries`]: https://docs.rs/tar/*/tar/struct.Archive.html#method.entries
 [`tar::Archive::unpack`]: https://docs.rs/tar/*/tar/struct.Archive.html#method.unpack
 [`tar::Builder`]: https://docs.rs/tar/*/tar/struct.Builder.html
+[`tar::Entry`]: https://docs.rs/tar/0.4.13/tar/struct.Entry.html
+[`tar::Entry::path`]: https://docs.rs/tar/0.4.13/tar/struct.Entry.html#method.path
+[`tar::Entry::unpack`]: https://docs.rs/tar/0.4.13/tar/struct.Entry.html#method.unpack
+[`tar::Entries`]: https://docs.rs/tar/0.4.13/tar/struct.Entries.html
 [`Builder::append_dir_all`]: https://docs.rs/tar/*/tar/struct.Builder.html#method.append_dir_all
 [`WalkDir::min_depth`]: https://docs.rs/walkdir/*/walkdir/struct.WalkDir.html#method.min_depth
 [`WalkDir::max_depth`]: https://docs.rs/walkdir/*/walkdir/struct.WalkDir.html#method.max_depth

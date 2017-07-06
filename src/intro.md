@@ -77,6 +77,7 @@ community. It needs and welcomes help. For details see
 | [Parse command line arguments][ex-clap-basic] | [![clap-badge]][clap] | [![cat-command-line-badge]][cat-command-line] |
 | [Decompress a tarball][ex-tar-decompress] | [![flate2-badge]][flate2] [![tar-badge]][tar] | [![cat-compression-badge]][cat-compression] |
 | [Compress a directory into a tarball][ex-tar-compress] | [![flate2-badge]][flate2] [![tar-badge]][tar] | [![cat-compression-badge]][cat-compression] |
+| [Iterate through a tarball, removing path prefixes][ex-tar-iterate] | [![flate2-badge]][flate2] [![tar-badge]][tar] | [![cat-compression-badge]][cat-compression] |
 | [Recursively find duplicate file names][ex-dedup-filenames] | [![walkdir-badge]][walkdir] | [![cat-filesystem-badge]][cat-filesystem] |
 | [Recursively find all files with given predicate][ex-file-predicate] | [![walkdir-badge]][walkdir] | [![cat-filesystem-badge]][cat-filesystem] |
 | [Recursively calculate file sizes at given depth][ex-file-sizes] | [![walkdir-badge]][walkdir] | [![cat-filesystem-badge]][cat-filesystem] |
@@ -237,6 +238,7 @@ Keep lines sorted.
 [ex-std-read-lines]: basics.html#ex-std-read-lines
 [ex-tar-compress]: app.html#ex-tar-compress
 [ex-tar-decompress]: app.html#ex-tar-decompress
+[ex-tar-iterate]: app.html#ex-tar-iterate
 [ex-toml-config]: encoding.html#ex-toml-config
 [ex-url-base]: net.html#ex-url-base
 [ex-url-basic]: net.html#ex-url-basic
