@@ -11,6 +11,8 @@ Akshat
 akshat
 alisha
 AlphaNumeric
+ansi
+ansiterm
 ApiResponse
 apis
 APIs
@@ -189,6 +191,7 @@ MyFlags
 NaiveDate
 NaiveDateTime
 NaiveTime
+ndarray
 nFun
 NotFound
 NulError
@@ -244,9 +247,11 @@ resize
 resized
 RESTful
 ReverseDependencies
+rusqlite
 rustaceans
 rustc
 RwLock
+SQLite
 SecureRandom
 SemVer
 Semver
@@ -260,6 +265,7 @@ SetLoggerError
 SigningKey
 SocketAddrV
 StatusCode
+sqlite
 stderr
 stdin
 Stdout
